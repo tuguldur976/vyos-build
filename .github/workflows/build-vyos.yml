@@ -1,7 +1,7 @@
 name: Build VyOS Image
 
 on:
-  workflow_dispatch: # Гараар ажиллуулах товч
+  workflow_dispatch:
 
 jobs:
   build-vyos:
@@ -14,9 +14,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: sagitta
+          fetch-depth: 0 # Бүх түүхийг татаж авах (найдвартай)
+
+      - name: List files (Debug)
+        run: ls -la # Файлууд байгаа эсэхийг терминал дээр харуулна
+
+      - name: Fix Permissions
+        run: |
+          # Файлыг ажиллуулж болохуйц (executable) болгоно
+          if [ -f "./build-by-container" ]; then
+            chmod +x ./build-by-container
+          else
+            echo "Error: build-by-container not found!"
+            exit 1
+          fi
 
       - name: Build VyOS Cloud-Init Image
         run: |
+          # Тухайн файлыг шууд дуудаж ажиллуулна
           sudo ./build-by-container --type qcow2 --flavor cloud-init
 
       - name: Get Version Number
