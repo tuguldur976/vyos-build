@@ -1,0 +1,37 @@
+name: Build VyOS Image
+
+on:
+  workflow_dispatch: # Гараар ажиллуулах товч
+
+jobs:
+  build-vyos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: current # 1.5 Rolling салбар
+          fetch-depth: 0
+
+      - name: Build VyOS QCOW2 Image
+        run: |
+          # VyOS 1.5 (current) салбарын build контейнерыг ашиглан 
+          # Proxmox-т зориулсан 'qemu' flavor-ийг build хийнэ
+          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
+            sudo ./build-vyos-image qemu --architecture amd64
+
+      - name: Get Version Number
+        id: get_version
+        run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
+          name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
+          files: build/*.qcow2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
