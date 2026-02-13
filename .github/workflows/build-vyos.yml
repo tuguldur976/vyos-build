@@ -16,12 +16,12 @@ jobs:
           ref: current
           fetch-depth: 0
 
-      - name: Build VyOS QCOW2 Image
+      - name: Build VyOS Disk Image
         run: |
-          # 1. 'generic' flavor-ийг ашиглаж, гаралтын форматыг 'qcow2' болгож заана.
-          # Энэ нь Proxmox-т шууд ашиглах боломжтой Cloud-Init дэмжлэгтэй image үүсгэнэ.
+          # 1. VyOS 1.5-д дискний image-ийг 'raw' форматтай гаргадаг.
+          # Proxmox 'qm importdisk' команд нь .raw файлыг шууд дэмждэг.
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image generic --architecture amd64 --build-type qcow2
+            sudo ./build-vyos-image generic --architecture amd64 --build-type raw
 
       - name: Get Version Number
         id: get_version
@@ -32,7 +32,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
-          # Build-ийн үр дүн 'build/' хавтсанд .qcow2 өргөтгөлтэй үүснэ
-          files: build/*.qcow2
+          # Үр дүн 'build/' хавтсанд .raw өргөтгөлтэй үүснэ
+          files: build/*.raw
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
