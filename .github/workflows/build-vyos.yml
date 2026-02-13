@@ -18,10 +18,10 @@ jobs:
 
       - name: Build VyOS QCOW2 Image
         run: |
-          # 1. VyOS build контейнерыг ажиллуулж, дотор нь build-vyos-image командыг дуудна
-          # Sagitta салбарын багцуудыг ашиглан QCOW2 болон Cloud-Init image үүсгэнэ
+          # 1. VyOS 1.4 (Sagitta) дээр 'qemu' flavor нь Cloud-Init-ийг өөртөө агуулдаг.
+          # Тиймээс --cloud-init flag-ийг хасаж, шууд 'qemu' төрлөөр build хийнэ.
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:sagitta \
-            sudo ./build-vyos-image qemu --cloud-init --architecture amd64
+            sudo ./build-vyos-image qemu --architecture amd64
 
       - name: Get Version Number
         id: get_version
@@ -32,6 +32,7 @@ jobs:
         with:
           tag_name: vyos-1.4-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.4 LTS Build ${{ steps.get_version.outputs.VERSION }}
+          # Build-ийн үр дүн 'build/' хавтсанд үүсдэг
           files: build/*.qcow2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
