@@ -1,7 +1,7 @@
 name: Build VyOS Image
 
 on:
-  workflow_dispatch: # Гараар ажиллуулах товч
+  workflow_dispatch:
 
 jobs:
   build-vyos:
@@ -13,15 +13,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: current # 1.5 Rolling салбар
+          ref: current
           fetch-depth: 0
 
       - name: Build VyOS QCOW2 Image
         run: |
-          # VyOS 1.5 (current) салбарын build контейнерыг ашиглан 
-          # Proxmox-т зориулсан 'qemu' flavor-ийг build хийнэ
+          # 1. 'generic' flavor-ийг ашиглаж, гаралтын форматыг 'qcow2' болгож заана.
+          # Энэ нь Proxmox-т шууд ашиглах боломжтой Cloud-Init дэмжлэгтэй image үүсгэнэ.
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image qemu --architecture amd64
+            sudo ./build-vyos-image generic --architecture amd64 --build-type qcow2
 
       - name: Get Version Number
         id: get_version
@@ -32,6 +32,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
+          # Build-ийн үр дүн 'build/' хавтсанд .qcow2 өргөтгөлтэй үүснэ
           files: build/*.qcow2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
