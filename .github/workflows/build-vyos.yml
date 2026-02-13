@@ -1,0 +1,33 @@
+name: Build VyOS Image
+on:
+  workflow_dispatch: # Та өөрөө "Run" товч дарахад ажиллана
+
+jobs:
+  build-vyos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Release үүсгэх эрх өгч байна
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: sagitta # LTS branch
+
+      - name: Build VyOS Cloud-Init Image
+        run: |
+          # VyOS-ийн build хийх Docker контейнерыг ажиллуулж image-ээ гаргана
+          sudo ./build-by-container --type qcow2 --flavor cloud-init
+
+      - name: Get Version Number
+        id: get_version
+        run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: vyos-1.4-${{ steps.get_version.outputs.VERSION }}
+          name: VyOS 1.4 LTS Build ${{ steps.get_version.outputs.VERSION }}
+          files: build/vyos-*.qcow2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
