@@ -18,11 +18,11 @@ jobs:
 
       - name: Build VyOS Image
         run: |
-          # 1. 'qemu' бол build_flavor юм. Үүнийг тушаалын төгсгөлд бичнэ.
-          # 2. --architecture amd64 нь стандарт x86_64 системд зориулагдана.
-          # Энэ команд нь Proxmox-т зориулсан .qcow2 файлыг build/ хавтсанд үүсгэнэ.
+          # 1. 'generic' бол flavor (амт)
+          # 2. '--build-type qemu' бол гаралтын формат
+          # Энэ нь Proxmox-т зориулсан .qcow2 файлыг build/ хавтсанд гаргана.
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image qemu --architecture amd64
+            sudo ./build-vyos-image generic --build-type qemu --architecture amd64
 
       - name: Get Version Number
         id: get_version
@@ -33,7 +33,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
-          # Build-ийн үр дүн 'build/' хавтсанд .qcow2 эсвэл .img хэлбэрээр үүсдэг.
+          # build/ хавтсанд үүссэн бүх файлыг (ихэвчлэн .qcow2) оруулна
           files: build/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
