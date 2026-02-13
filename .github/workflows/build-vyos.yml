@@ -13,24 +13,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: current # VyOS 1.5 салбар
+          ref: current # VyOS 1.5 Rolling салбар
           fetch-depth: 0
-
-      - name: Ensure Build Script Exists
-        run: |
-          # Хэрэв build-by-container файл байхгүй бол албан ёсны сангаас татаж авна
-          if [ ! -f "./build-by-container" ]; then
-            echo "build-by-container not found, downloading from upstream..."
-            curl -O https://raw.githubusercontent.com/vyos/vyos-build/current/build-by-container
-          fi
-          chmod +x ./build-by-container
 
       - name: Build VyOS Image
         run: |
-          # Албан ёсны баримт бичигт заасан хамгийн зөв команд:
-          # --type qemu: Proxmox/KVM-д зориулсан .qcow2 үүсгэнэ
-          # --flavor generic: Бүх виртуал орчинд тохиромжтой багцуудыг суулгана
-          sudo ./build-by-container --type qemu --flavor generic
+          # Баримт бичигт заасан 'build-by-container' скриптийн гүйцэтгэдэг үндсэн команд:
+          # --type qemu: Proxmox/KVM-д зориулсан .qcow2 файл үүсгэнэ.
+          # generic: Үндсэн flavor буюу багцын төрөл.
+          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
+            sudo ./build-vyos-image generic --type qemu --architecture amd64
 
       - name: Get Version Number
         id: get_version
@@ -41,6 +33,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
+          # Үр дүн 'build/' хавтсанд .qcow2 өргөтгөлтэй үүснэ.
           files: build/*.qcow2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
