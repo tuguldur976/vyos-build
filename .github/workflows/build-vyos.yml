@@ -1,22 +1,22 @@
 name: Build VyOS Image
+
 on:
-  workflow_dispatch: # Та өөрөө "Run" товч дарахад ажиллана
+  workflow_dispatch: # Гараар ажиллуулах товч
 
 jobs:
   build-vyos:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Release үүсгэх эрх өгч байна
+      contents: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: sagitta # LTS branch
+          ref: sagitta
 
       - name: Build VyOS Cloud-Init Image
         run: |
-          # VyOS-ийн build хийх Docker контейнерыг ажиллуулж image-ээ гаргана
           sudo ./build-by-container --type qcow2 --flavor cloud-init
 
       - name: Get Version Number
