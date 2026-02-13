@@ -13,16 +13,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: current # VyOS 1.5 Rolling салбар
+          ref: current # 1.5 Rolling салбар
           fetch-depth: 0
 
       - name: Build VyOS Image
         run: |
-          # Баримт бичигт заасан 'build-by-container' скриптийн гүйцэтгэдэг үндсэн команд:
-          # --type qemu: Proxmox/KVM-д зориулсан .qcow2 файл үүсгэнэ.
-          # generic: Үндсэн flavor буюу багцын төрөл.
+          # 1. 'qemu' бол build_flavor юм. Үүнийг тушаалын төгсгөлд бичнэ.
+          # 2. --architecture amd64 нь стандарт x86_64 системд зориулагдана.
+          # Энэ команд нь Proxmox-т зориулсан .qcow2 файлыг build/ хавтсанд үүсгэнэ.
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image generic --type qemu --architecture amd64
+            sudo ./build-vyos-image qemu --architecture amd64
 
       - name: Get Version Number
         id: get_version
@@ -33,7 +33,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
-          # Үр дүн 'build/' хавтсанд .qcow2 өргөтгөлтэй үүснэ.
-          files: build/*.qcow2
+          # Build-ийн үр дүн 'build/' хавтсанд .qcow2 эсвэл .img хэлбэрээр үүсдэг.
+          files: build/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
