@@ -13,16 +13,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: current # 1.5 Rolling салбар
+          ref: current
           fetch-depth: 0
 
       - name: Build VyOS Image
         run: |
-          # 1. 'generic' бол flavor (амт)
-          # 2. '--build-type qemu' бол гаралтын формат
-          # Энэ нь Proxmox-т зориулсан .qcow2 файлыг build/ хавтсанд гаргана.
+          # 1. 'generic' flavor-ийг ашиглаж, 'raw' төрлөөр дискний image үүсгэнэ.
+          # Энэ нь Proxmox-т шууд импортлож болох Cloud-init-тэй файлыг гаргана.
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image generic --build-type qemu --architecture amd64
+            sudo ./build-vyos-image generic --architecture amd64 --build-type raw
 
       - name: Get Version Number
         id: get_version
@@ -33,7 +32,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
-          # build/ хавтсанд үүссэн бүх файлыг (ихэвчлэн .qcow2) оруулна
-          files: build/*
+          # build/ хавтсанд үүссэн .raw файлыг оруулна.
+          files: build/*.raw
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
