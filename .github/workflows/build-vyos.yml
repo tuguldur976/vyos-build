@@ -13,15 +13,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: current
+          ref: current # 1.5 Rolling
           fetch-depth: 0
 
-      - name: Build VyOS Disk Image
+      - name: Build VyOS Image
         run: |
-          # 1. VyOS 1.5-д дискний image-ийг 'raw' форматтай гаргадаг.
-          # Proxmox 'qm importdisk' команд нь .raw файлыг шууд дэмждэг.
-          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image generic --architecture amd64 --build-type raw
+          # 1. Скриптэд ажиллуулах эрх өгөх
+          chmod +x ./build-by-container
+          
+          # 2. Албан ёсны баримт бичигт зааснаар 'qemu' төрлөөр build хийнэ. 
+          # Энэ нь автоматаар Cloud-init дэмжлэгтэй .qcow2 файлыг үүсгэдэг.
+          # --flavor cloud-init нь нэмэлт тохиргоог оруулах болно.
+          sudo ./build-by-container --type qemu --flavor generic
 
       - name: Get Version Number
         id: get_version
@@ -32,7 +35,7 @@ jobs:
         with:
           tag_name: vyos-1.5-${{ steps.get_version.outputs.VERSION }}
           name: VyOS 1.5 Rolling Build ${{ steps.get_version.outputs.VERSION }}
-          # Үр дүн 'build/' хавтсанд .raw өргөтгөлтэй үүснэ
-          files: build/*.raw
+          # Үр дүн 'build/' хавтсанд .qcow2 өргөтгөлтэй байх болно.
+          files: build/*.qcow2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
