@@ -1,0 +1,36 @@
+name: Build VyOS 1.4 Sagitta ISO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-vyos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: sagitta # 1.4 LTS салбар руу солив
+          fetch-depth: 0
+
+      - name: Build VyOS ISO
+        run: |
+          # Docker image-ийг vyos/vyos-build:sagitta болгож солих нь чухал
+          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:sagitta \
+            sudo ./build-vyos-image generic --architecture amd64
+
+      - name: Get Version Number
+        id: get_version
+        run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: vyos-1.4-iso-${{ steps.get_version.outputs.VERSION }}
+          name: VyOS 1.4 Sagitta ISO ${{ steps.get_version.outputs.VERSION }}
+          files: build/*.iso
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
