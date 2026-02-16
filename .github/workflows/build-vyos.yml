@@ -1,4 +1,4 @@
-name: Build VyOS 1.4 Sagitta ISO
+name: Build VyOS ISO
 
 on:
   workflow_dispatch:
@@ -13,24 +13,40 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: sagitta # 1.4 LTS салбар руу солив
+          # Сонгосон салбартаа тааруулж солиорой: current эсвэл sagitta
+          ref: sagitta 
           fetch-depth: 0
+
+      - name: Free Disk Space (Бэлтгэл)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          # Docker-т илүү зай гаргах
+          docker image prune -af
+          df -h
 
       - name: Build VyOS ISO
         run: |
-          # Docker image-ийг vyos/vyos-build:sagitta болгож солих нь чухал
-          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:sagitta \
+          # Анхаар: ref: current бол image: current, ref: sagitta бол image: sagitta байна!
+          docker run --rm --privileged \
+            -v $(pwd):/vyos \
+            -w /vyos \
+            vyos/vyos-build:sagitta \
             sudo ./build-vyos-image iso --architecture amd64
 
       - name: Get Version Number
+        if: success()
         id: get_version
         run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
       - name: Create Release and Upload
+        if: success()
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: vyos-1.4-iso-${{ steps.get_version.outputs.VERSION }}
-          name: VyOS 1.4 Sagitta ISO ${{ steps.get_version.outputs.VERSION }}
+          tag_name: vyos-iso-${{ steps.get_version.outputs.VERSION }}
+          name: VyOS ISO ${{ steps.get_version.outputs.VERSION }}
           files: build/*.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
