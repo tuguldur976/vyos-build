@@ -17,20 +17,17 @@ jobs:
           ref: sagitta 
           fetch-depth: 0
 
-      - name: Free Disk Space (Бэлтгэл)
+      - name: Cleanup and Free Space
         run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          # Docker-т илүү зай гаргах
+          # Өмнөх build-ээс үлдсэн байж болох config болон cache-ийг бүрэн устгах
+          sudo git clean -xdf 
+          sudo rm -rf /usr/share/dotnet /opt/ghc
           docker image prune -af
-          df -h
 
       - name: Build VyOS ISO
         run: |
-          # Анхаар: ref: current бол image: current, ref: sagitta бол image: sagitta байна!
-          docker run --rm --privileged \
+          # --network=host нэмсэнээр DNS алдаа засагдана
+          docker run --rm --privileged --network=host \
             -v $(pwd):/vyos \
             -w /vyos \
             vyos/vyos-build:sagitta \
