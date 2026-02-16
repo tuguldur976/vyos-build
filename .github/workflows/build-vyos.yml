@@ -1,4 +1,4 @@
-name: Build VyOS ISO
+name: Build VyOS 1.4 Sagitta ISO
 
 on:
   workflow_dispatch:
@@ -13,20 +13,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          # Сонгосон салбартаа тааруулж солиорой: current эсвэл sagitta
-          ref: sagitta 
+          ref: sagitta
           fetch-depth: 0
 
-      - name: Cleanup and Free Space
+      - name: Maximize Disk Space & Cleanup
         run: |
-          # Өмнөх build-ээс үлдсэн байж болох config болон cache-ийг бүрэн устгах
-          sudo git clean -xdf 
-          sudo rm -rf /usr/share/dotnet /opt/ghc
+          # Өмнөх build-ийн үлдэгдэл болон шаардлагагүй файлуудыг бүрэн цэвэрлэх
+          sudo git clean -xdf
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
           docker image prune -af
 
       - name: Build VyOS ISO
         run: |
-          # --network=host нэмсэнээр DNS алдаа засагдана
+          # 1. --network=host : DNS алдааг засна
+          # 2. -e VYOS_MIRROR : Репозиторыг гараар зааж өгөх (шаардлагатай бол)
           docker run --rm --privileged --network=host \
             -v $(pwd):/vyos \
             -w /vyos \
@@ -42,8 +42,8 @@ jobs:
         if: success()
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: vyos-iso-${{ steps.get_version.outputs.VERSION }}
-          name: VyOS ISO ${{ steps.get_version.outputs.VERSION }}
+          tag_name: vyos-1.4-iso-${{ steps.get_version.outputs.VERSION }}
+          name: VyOS 1.4 Sagitta ISO ${{ steps.get_version.outputs.VERSION }}
           files: build/*.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
