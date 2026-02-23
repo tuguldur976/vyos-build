@@ -24,7 +24,7 @@ jobs:
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
             sudo ./build-vyos-image generic \
             --architecture amd64 \
-            --custom-package "qemu-guest-agent"
+            --custom-package "qemu-guest-agent,cloud-init,iperf3,mtr-tiny,htop,tmux,prometheus-node-exporter"
 
       - name: Get Version Number
         id: get_version
