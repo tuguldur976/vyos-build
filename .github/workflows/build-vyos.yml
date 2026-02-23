@@ -22,7 +22,9 @@ jobs:
           # --privileged: Build хийх явцад mount хийх эрх олгоно
           # ./build-vyos-image generic: ISO файл үүсгэх үндсэн команд
           docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:current \
-            sudo ./build-vyos-image generic --architecture amd64
+            sudo ./build-vyos-image generic \
+            --architecture amd64 \
+            --custom-package "qemu-guest-agent"
 
       - name: Get Version Number
         id: get_version
